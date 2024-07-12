@@ -58,3 +58,35 @@ echo -e "\n\nIf you wish to change the default extension replacement for extensi
 
 
 echo -e "\n\nFinalizing - copying script to /usr/local/bin, if this is not on your $PATH variable, I would add it to your path in your .bashrc or .zshrc, its the typical spot for user scripts/binaries in my experience. Thanks and enjoy!\n\nRIP SPRUNGE, YOU WERE IMMEDIATELY MISSED. WHY DID YOU LEAVE US LIKE THIS, NOT ONCE, BUT TWICE, MY HEART CAN NO LONGER TAKE IT. I HAVE MOVED ON.\n\nand even though you most definitely already know about them if you're here, it still is worth saying:\n\nBIG THANKS TO ZIPLINE DEVS FOR THIS INCREDIBLE, FREE, AMAZING REPO, SHOW THEM SOME LOVE PLEASE https://github.com/diced/zipline, BUY THOSE BOYS A COFFEE FOR FUCKS SAKE!"
+
+echo -e "\n\nHOW TO USE PASTIT:\n\nSTDOUT:\necho "pastitties" | pastit\n\nPASTE FILE:\npastit ~/.zshrc\n\nFINISHED! COPYING EXECUTABLE..."
+ 
+chmod +x ./pastit
+cp pastit /usr/local/bin/pastit
+
+check_path() {
+    echo $PATH | grep -q "/usr/local/bin"
+    return $?
+}
+
+
+# Function to append /usr/local/bin to .bashrc and .zshrc
+append_to_files() {
+    echo 'export PATH="/usr/local/bin:$PATH"' >> ~/.bashrc
+    echo 'export PATH="/usr/local/bin:$PATH"' >> ~/.zshrc
+    echo "/usr/local/bin has been added to your PATH in .bashrc and .zshrc"
+}
+
+
+check_path
+if [ $? -ne 0 ]; then
+    echo "/usr/local/bin is not in your PATH."
+    read -p "Would you like to add /usr/local/bin to your PATH in .bashrc and .zshrc so that pastit can be usable at launch? (yes/no) " response
+    if [ "$response" == "yes" ]; then
+        append_to_files
+    else
+        echo "No changes made to your PATH."
+    fi
+else
+    echo "/usr/local/bin is already in your PATH."
+fi
