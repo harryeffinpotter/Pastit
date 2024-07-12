@@ -33,19 +33,18 @@ if [ ! -f "$zipline_file" ]; then
         sleep 10
         exit 1
     fi
+    clear
 else
-    echo -e "\n\nAwesome!\n\n"
+    echo -e "Awesome! Looks like we have all we need!\n\n"
     # Read the values from the zipline.sxcu file
     URL=$(jq -r '.RequestURL' "$zipline_file")
     authorizationtoken=$(jq -r '.Headers.Authorization' "$zipline_file")
 
 
 fi
-
-echo -e "\nHere is the gathered information:\n\nAPI url:\n${URL}/api/upload\n\nAuthorization token:\n${authorizationtoken}\n\n...please verify that it is correct, if it is not - you must correct your pastit file at /usr/local/bin/pastit, if it is incorrect press CTRL+C now and relaunch the script to try again. Script will now pause for 15 seconds before making final changes to the pastit file."
-
-sleep 15
-
+sleep 2
+echo -e "\nHere is the gathered information:\n\nAPI url:\n${URL}/api/upload\n\nAuthorization token:\n${authorizationtoken}\n\n...please verify that it is correct, if it is not - you must correct your pastit file at /usr/local/bin/pastit, if it is incorrect press CTRL+C now and relaunch the script to try again. Script will now pause while you verify this information, press ENTER when done."
+read NOTHING
 echo "Now editing pastit script with your information!"
 # Replace placeholders in the main script
 sed -i "s|ENTER_YOUR_ZIPLINE_URL_HERE/api/upload|$request_url|g" "$main_script"
