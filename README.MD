@@ -1,8 +1,8 @@
-# PasTit(Paste-it!)
+### Pastit! (Paste-it)
 
 PRETITIER README COMING SOON - But basically if you know about SPRUNGE.US this is a replacement for that since it has gone MIA, this is the second time its unexplicably gone down in the past ~6 months, and I found myself needing it too often (cant paste into a machine for some reason, weird TTY situiation? EZ win), so I took matters into my own hands.
 
-How to install:
+## How to install:
 
 ```git clone https://github.com/harryeffinpotter/pastit```
 
@@ -13,7 +13,7 @@ How to install:
 ```./setup.sh```
 
 
-Sprunge+ - Like sprunge, but +
+## Sprunge+ - Like sprunge, but +
 Use pastit to paste files like so
 
 `pastit .zshrc`
