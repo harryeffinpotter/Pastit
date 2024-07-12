@@ -7,7 +7,6 @@ How to install:
 ```cd pastit```
 
 ```chmod +x setup.sh```
-
 ```./setup.sh```
 
 
