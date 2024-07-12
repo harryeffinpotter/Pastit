@@ -1,10 +1,15 @@
 PRETITIER README COMING SOON - But basically if you know about SPRUNGE.US this is a replacement for that since it has gone MIA, this is the second time its unexplicably gone down in the past ~6 months, and I found myself needing it too often (cant paste into a machine for some reason, weird TTY situiation? EZ win), so I took matters into my own hands.
 
 How to install:
-`git clone https://github.com/harryeffinpotter/pastit`
-`cd pastit`
-`chmod +x setup.sh`
-`./setup.sh`
+
+```git clone https://github.com/harryeffinpotter/pastit```
+
+```cd pastit```
+
+```chmod +x setup.sh```
+
+```./setup.sh```
+
 
 Sprunge+ - Like sprunge, but +
 Use pastit to paste files like sopastit .zshrc`
