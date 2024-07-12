@@ -7,19 +7,29 @@ How to install:
 ```cd pastit```
 
 ```chmod +x setup.sh```
+
 ```./setup.sh```
 
 
-Sprunge+ - Like sprunge, but +
-Use pastit to paste files like sopastit .zshrc`
+   Sprunge+ - Like sprunge, but +
+Use pastit to paste files like sostit .zshrc`
+
 `pastit script.py`
+
 `pastit /etc/nginx/nginx.conf`
 
-Or just capture STDOUT like this-
+  Or just capture STDOUT like this-
 `ls -la | grep "Feet_pics"| pastit`
+
 `ping lemonparty.org | pastit`
+
 `ip a | pastit`
+
 `echo $YOUR_MUMS_FAVORITE_MAN | sed 's/your dad/me/g' | pastit`
+
+
+
+
 
 
 Enjoy! Open to suggestions/ideas! Thanks
