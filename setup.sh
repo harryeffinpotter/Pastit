@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Path to the main script
-main_script="pasteit"
+main_script="pastit"
 
 
-cat ./pasteit | grep "ENTER_YOUR_ZIPLINE"
-if [[ "$?" == 1 ]] || [[ -z "/usr/local/bin/pasteit" ]]; then
+cat ./pastit | grep "ENTER_YOUR_ZIPLINE"
+if [[ "$?" == 1 ]] || [[ -z "/usr/local/bin/pastit" ]]; then
 echo "Already configured, exiting!"
 exit 0
 fi
@@ -42,11 +42,11 @@ else
 
 fi
 
-echo -e "\nHere is the gathered information:\n\nAPI url:\n${URL}/api/upload\n\nAuthorization token:\n${authorizationtoken}\n\n...please verify that it is correct, if it is not - you must correct your pasteit file at /usr/local/bin/pasteit, if it is incorrect press CTRL+C now and relaunch the script to try again. Script will now pause for 15 seconds before making final changes to the pasteit file."
+echo -e "\nHere is the gathered information:\n\nAPI url:\n${URL}/api/upload\n\nAuthorization token:\n${authorizationtoken}\n\n...please verify that it is correct, if it is not - you must correct your pastit file at /usr/local/bin/pastit, if it is incorrect press CTRL+C now and relaunch the script to try again. Script will now pause for 15 seconds before making final changes to the pastit file."
 
 sleep 15
 
-echo "Now editing pasteit script with your information!"
+echo "Now editing pastit script with your information!"
 # Replace placeholders in the main script
 sed -i "s|ENTER_YOUR_ZIPLINE_URL_HERE/api/upload|$request_url|g" "$main_script"
 sed -i "s|ENTER_YOUR_ZIPLINE_AUTHORIZATION_TOKEN_HERE|$authorization_token|g" "$main_script"
