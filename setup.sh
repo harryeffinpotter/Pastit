@@ -41,7 +41,7 @@ fi
 clear
 echo -e "Awesome! Looks like we have all we need!\n"
 sleep 2
-echo -e "\nHere is the gathered information:\n\nAPI url:\n${URL}/api/upload\n\nAuthorization token:\n${authorizationtoken}\n\n...please verify that it is correct.\n\nAfter this point if this info is wrong - you must correct your pastit file at /usr/local/bin/pastit.\nYou can press CTRL+C now and try again to avoid this right now.\n\nScript will now pause while you verify this information, press ENTER when done to write your changes."
+echo -e "\nHere is the gathered information:\n\nAPI url:\n${URL}\n\nAuthorization token:\n${authorizationtoken}\n\n...please verify that it is correct.\n\nAfter this point if this info is wrong - you must correct your pastit file at /usr/local/bin/pastit.\nYou can press CTRL+C now and try again to avoid this right now.\n\nScript will now pause while you verify this information, press ENTER when done to write your changes."
 read NOTHING
 echo "Now editing pastit script with your information!"
 # Replace placeholders in the main script
