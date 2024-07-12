@@ -54,8 +54,8 @@ echo "Main script updated with URL and Authorization token."
 echo -e "\n\nIf you wish to change the default extension replacement for extensionless files you can find that on LINE 15, and a setting to decide whether or not to count hidden files (files that start with a \'.\' like .zshrc, .config files, etc) as extensionless on LINE 18\n\nThe default settings are .sh and true, this is so files like .zshrc have proper bash syntax highlighting, but ultimately - it's up to you."
 
 
-echo -e "\n\nFinalizing - copying script to /usr/local/bin, if this is not on your $PATH variable, I would add it to your path in your .bashrc or .zshrc, its the typical spot for user scripts/binaries in my experience. Thanks and enjoy!\n\nRIP SPRUNGE, YOU WERE IMMEDIATELY MISSED. WHY DID YOU LEAVE US LIKE THIS, NOT ONCE, BUT TWICE, MY HEART CAN NO LONGER TAKE IT. I HAVE MOVED ON.\n\nand even though you most definitely already know about them if you're here, it still is worth saying:\n\nBIG THANKS TO ZIPLINE DEVS FOR THIS INCREDIBLE, FREE, AMAZING REPO, SHOW THEM SOME LOVE PLEASE https://github.com/diced/zipline, BUY THOSE BOYS A COFFEE FOR FUCKS SAKE!"
-
+echo -e "\n\nFinalizing - copying script to /usr/local/bin!\n\nRIP SPRUNGE, YOU WERE IMMEDIATELY MISSED. WHY DID YOU LEAVE US LIKE THIS, NOT ONCE, BUT TWICE, MY HEART CAN NO LONGER TAKE IT. I HAVE MOVED ON.\n\nand even though you most definitely already know about them if you're here, it still is worth saying:\n\nBIG THANKS TO ZIPLINE DEVS FOR THIS INCREDIBLE, FREE, AMAZING REPO, SHOW THEM SOME LOVE PLEASE https://github.com/diced/zipline, BUY THOSE BOYS A COFFEE FOR FUCKS SAKE!"
+sleep 10
 echo -e "\n\nHOW TO USE PASTIT:\n\nSTDOUT:\necho "pastitties" | pastit\n\nPASTE FILE:\npastit ~/.zshrc\n\nFINISHED! COPYING EXECUTABLE..."
  
 chmod +x ./pastit
@@ -85,5 +85,5 @@ if [ $? -ne 0 ]; then
         echo "No changes made to your PATH."
     fi
 else
-    echo "/usr/local/bin is already in your PATH."
+    echo "Good news! /usr/local/bin is already in your PATH."
 fi
