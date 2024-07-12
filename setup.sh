@@ -66,8 +66,20 @@ sed -i "s|ENTER_YOUR_ZIPLINE_AUTHORIZATION_TOKEN_HERE|$authorizationtoken|g" "$m
 
 echo "Main script updated with URL and Authorization token."
 
-echo -e "\n\nFinalizing!\n\nRIP SPRUNGE, YOU WERE IMMEDIATELY MISSED. WHY DID YOU LEAVE US LIKE THIS, NOT ONCE, BUT TWICE!\n\nEven though you most definitely already know about them if you're here, it still is worth saying:\n\nBIG THANKS TO ZIPLINE DEVS FOR THIS INCREDIBLE, FREE, AMAZING REPO, SHOW THEM SOME LOVE PLEASE\n\n https://github.com/diced/zipline\n\nBUY THOSE BOYS A COFFEE FOR FUCKS SAKE!"
-sleep 8
+echo -e "\n\nFinalizing!\n\nRIP SPRUNGE, YOU WILL BE MISSED\n\nBIG THANKS TO ZIPLINE DEVS FOR THIS INCREDIBLE, FREE, AMAZING, REPOSITORY, SHOW THEM SOME LOVE:\nhttps://github.com/diced/zipline\n\nBUY THOSE BOYS A COFFEE FOR FUCKS SAKE!"
+sleep 3
+
+echo "Making script executable..."
+chmod +x ./pastit
+
+echo Copying script to  /usr/local/bin so it can be run from anywhere, requesting sudo permissions...
+sudo cp ./pastit /usr/local/bin/pastit
+
+echo Copied!
+echo
+echo Press ENTER to finish installation.
+read NOTHING
+clear
 echo -e "\n\nHOW TO USE PASTIT:\n\nSTDOUT:\necho \"pastitties\" | pastit\n\nPASTE FILE:\npastit ~/.zshrc\n\nFINISHED! COPYING EXECUTABLE..."
 
 chmod +x ./pastit
