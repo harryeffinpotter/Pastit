@@ -30,9 +30,12 @@ if [ -z "$1" ]; then
         exit 1
     fi
 else
-    data="$(cat "$1")"
+    data="$(cat "$1"  2> /dev/null)"
+    if [[ "$?" != "0" ]]; then
+        echo "File not found, try again."
+        exit 1
+    fi
 fi
-
 # Check if the file has an extension, if not add default extension
 filename=$(basename -- "$1")
 extension="${filename##*.}"
