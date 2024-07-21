@@ -26,13 +26,13 @@ if [ -z "$1" ]; then
         data="$(cat)"
     else
         echo "No input provided."
-        exit 1
+        exit
     fi
 else
     data="$(cat "$1"  2> /dev/null)"
     if [[ "$?" != "0" ]]; then
         echo "File not found, try again."
-        exit 1
+        exit
     fi
 fi
 # Check if the file has an extension, if not add default extension
