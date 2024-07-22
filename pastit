@@ -20,21 +20,22 @@ considerFilesStartingWithDotExtensionless=true
 #### END CONFIG ####
 #### SCRIPT START ####
 # Check if text is provided via stdin
-if [ -z "$1" ]; then
-    if [ -p /dev/stdin ]; then
-        # Read piped input into a variable
-        data="$(cat)"
+if [ -p /dev/stdin ]; then
+    # Read piped input into a variable
+    data="$(cat)"
+elif [ -n "$1" ]; then
+    # Handle file input
+    if [ -f "$1" ]; then
+        data="$(cat "$1")"
     else
-        echo "No input provided."
-        exit 1
-    fi
-else
-    data="$(cat "$1"  2> /dev/null)"
-    if [[ "$?" != "0" ]]; then
         echo "File not found, try again."
         exit 1
     fi
+else
+    echo "No input provided."
+    exit 1
 fi
+
 # Check if the file has an extension, if not add default extension
 filename=$(basename -- "$1")
 extension="${filename##*.}"
