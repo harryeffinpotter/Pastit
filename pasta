@@ -25,11 +25,16 @@ url=${url}api/upload
 # API endpoint and headers
 authorization_token=${authtoken}
 
+if [ ! -r "$1" ]; then
+  echo "Error: File '$1' does not exist or is not readable."
+  exit 1
+fi
+
 # Sending the request using curl and capturing the response
 curl_command_line=$(curl -sS --fail -X POST -H "Authorization: $authorization_token" \
                         -H "Format: random" \
                         -H "Original-Name: true" \
-                        -F "file=@$1" \
+                        -F file=@"$1" \
                         $url)
 response=$curl_command_line
 curl_exit_code=$?
