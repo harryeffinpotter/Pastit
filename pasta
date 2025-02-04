@@ -26,12 +26,21 @@ url=${url}api/upload
 authorization_token=${authtoken}
 
 # Sending the request using curl and capturing the response
-response=$(curl -s -X POST -H "Authorization: $authorization_token" \
+curl_command_line=$(curl -sS --fail -X POST -H "Authorization: $authorization_token" \
                         -H "Format: random" \
                         -H "Original-Name: true" \
                         -F "file=@$1" \
                         $url)
-
+response=$curl_command_line
+curl_exit_code=$?
+if [ $curl_exit_code -ne 0 ]; then
+  echo "Error: curl command failed with exit code $curl_exit_code. This may be due to an invalid URL, network issue, or the file being too large."
+  exit 1
+fi
+if [ -z "$response" ]; then
+  echo "Error: Received an empty response from '$url'. The file may be too large to process."
+  exit 1
+fi
 
 # just the URL from the JSON response
 file_url=$(echo "$response" | jq -r '.files[0]')

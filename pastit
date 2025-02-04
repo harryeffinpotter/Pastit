@@ -72,6 +72,11 @@ response=$(curl -s -X POST -H "Authorization: $authorization_token" \
                         -F "file=@${output_file}" \
                         $url)
 
+if [ -z "$response" ]; then
+  echo "Error: Unable to retrieve zipline from '$url'. Please verify that the URL is correct."
+  exit 1
+fi
+
 # Extracting just the URL from the JSON response
 file_url=$(echo "$response" | jq -r '.files[0]')
 
