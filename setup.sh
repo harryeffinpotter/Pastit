@@ -1,6 +1,6 @@
 #!/bin/bash
 # setup.sh
-
+cp .env.example .env
 # Detect the OS
 if [ -f /etc/os-release ]; then
     . /etc/os-release
@@ -9,7 +9,18 @@ else
     echo "Cannot determine OS. Exiting."
     exit 1
 fi
-
+clear
+top_stamp(){
+    echo "=========================================="
+    echo "= PASTA/PASTIT setup by harryeffinpotter ="
+    echo "=========================================="
+    echo ""
+}
+top_stamp
+echo "Starting Pasta/Pastit setup..."
+sleep 2
+echo "Determining OS and checking for required packages..."
+sleep 3
 # Install jq based on detected OS
 case $OS in
     ubuntu|debian)
@@ -42,41 +53,30 @@ else
     exit 1
 fi
 
-# Function to format the URL correctly
-format_url() {
-    local input_url=$1
-    # Remove existing /api/upload if it appears
-    formatted_url=$(echo "$input_url" | sed 's#/api/upload##g')
-
-    # Add https:// if not present
-    if [[ ! $formatted_url =~ ^http ]]; then
-        formatted_url="https://$formatted_url"
-    fi
-
-    # Ensure there's only one forward slash at the end before appending /api/upload
-    formatted_url=$(echo "$formatted_url" | sed 's#/*$##')
-    formatted_url="$formatted_url/api/upload"
-
-    echo "$formatted_url"
-}
-
-echo "Please paste your Zipline authorization token now."
-printf '\e]8;;https://share.harryeffingpotter.com/u/QHqMKf.mp4\e\\Follow along with this 7 second video guide\e]8;;\e\\\n'
-echo -e "- then paste in the result:"
+clear
+top_stamp
+echo -e "Paste your Zipline authorization token.\n\nDon't know where to find it?"
+printf '\e]8;;https://share.harryeffingpotter.com/u/QHqMKf.mp4\e\\Follow along with this 7 second video guide to get your token\e]8;;\e\\\n'
+echo -e "\nThen paste it below:"
 read authorizationtoken
 if [ -z "$authorizationtoken" ]; then
     echo "Incorrect output, relaunch the script if you wish to try again!"
     sleep 10
     exit 1
 fi
-echo -e "\nOK Great now post the domain for your zipline server if you have one setup, if not just post the IP of your zipline system and the port number (the default is 3000).\n\nExamples:\n69.4.20.69:3000\nhttps://zipline.mysite.com"
+clear
+top_stamp
+echo -e "Authorization token:\n\n${authorizationtoken}\n\nwas written to .env file in repo directory."
+sleep 5
+clear
+top_stamp
+echo -e "OK Great now post the domain for your zipline server if you have one setup, if not just post the IP of your zipline system and the port number (the default is 3000).\n\nExamples:\n69.4.20.69:3000\nhttps://zipline.mysite.com\n\nEnter your zipline url now:"
 read URL
 if [ -z "$URL" ]; then
     echo "Incorrect output, relaunch the script if you wish to try again!"
     sleep 10
     exit 1
 fi
-URL=$(format_url "$URL")
 # Update the .env file in the current directory:
 sed -i "s/^authtoken=.*/authtoken=${authorizationtoken}/" .env
 sed -i "s|^url=.*|url=${URL}|" .env
@@ -102,7 +102,8 @@ if [ -e "$pasta_path" ] || [ -L "$pasta_path" ]; then
     echo "Removing existing file or symlink at $pasta_path"
     sudo rm -f "$pasta_path"
 fi
-
+clear 
+top_stamp
 # Make symlinks
 echo "Creating pastit symlink: $link_path -> $(pwd)/pastit"
 sudo ln -s "$(pwd)/pastit" "$pastit_path"
@@ -136,3 +137,12 @@ if [ $? -ne 0 ]; then
 else
     echo "Good news! /usr/local/bin is already in your PATH."
 fi
+sleep 5
+clear
+top_stamp
+echo "Pasta/pastit installation complete."
+echo -e "\nUsage:"
+echo "pasta file.zip # To upload files"
+echo -e "pastit script.py\nOR\necho \"Output\" | pastit # To host syntax highlighted code"
+echo -e "\nThanks for installing! Hope you find it as useful as I do!\n"
+sleep 2
