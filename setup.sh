@@ -1,13 +1,46 @@
 #!/bin/bash
+# setup.sh
 
-mainscript="pastit"
-
-cat ./pastit | grep "ENTER_YOUR_ZIPLINE"
-if [[ "$?" == 1 ]] || [[ -f '/usr/local/bin/pastit' ]]; then
-    echo "Already configured, exiting!"
-    exit 0
+# Detect the OS
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS=$ID
+else
+    echo "Cannot determine OS. Exiting."
+    exit 1
 fi
-clear
+
+# Install jq based on detected OS
+case $OS in
+    ubuntu|debian)
+        echo "Detected $OS. Installing jq using apt..."
+        sudo apt update && sudo apt install -y jq curl wget
+        ;;
+    arch)
+        echo "Detected Arch Linux. Installing jq using pacman..."
+        sudo pacman -Sy --noconfirm jq curl wget
+        ;;
+    fedora)
+        echo "Detected Fedora. Installing jq using dnf..."
+        sudo dnf install -y jq curl wget
+        ;;
+    centos|rhel)
+        echo "Detected $OS. Installing jq using yum..."
+        sudo yum install -y jq curl wget
+        ;;
+    *)
+        echo "Unsupported OS: $OS. Exiting."
+        exit 1
+        ;;
+esac
+
+# Verify installation
+if command -v jq &> /dev/null; then
+    echo "jq successfully installed."
+else
+    echo "jq installation failed."
+    exit 1
+fi
 
 # Function to format the URL correctly
 format_url() {
@@ -27,66 +60,60 @@ format_url() {
     echo "$formatted_url"
 }
 
-# Check if zipline.sxcu file exists in the same directory
-zipline_file="zipline.sxcu"
-if [ ! -f "$zipline_file" ]; then
-    echo "ERROR: No reference file found."
-    echo -e "\nYou can either -\n1. Paste your details manually into this script in the following prompt.\n2. Put your generated zipline.sxcu file in the same directory as this script and run it again.\n3. Manually edit the main script yourself and supply the necessary infomation, then move it to /usr/local/bin and make it executable.\n\n"
-    sleep 3
-    echo -e "If you chose 2 or 3, press CTRL+C to exit. If you want to paste in the data, CTRL-Left click this link:"
-    printf '\e]8;;https://share.harryeffingpotter.com/u/QHqMKf.mp4\e\\Follow along with this 7 second video guide\e]8;;\e\\\n'
-    echo -e "- then paste in the result:"
-    read authorizationtoken
-    if [ -z "$authorizationtoken" ]; then
-        echo "Incorrect output, relaunch the script if you wish to try again!"
-        sleep 10
-        exit 1
-    fi
-    echo -e "\nOK Great now post the url of your zipline server!\n"
-    echo -e "\nExamples:\nhttps://share.harryeffingpotter.com\n69.42.0.69:3000\nhttp://mySSLinsecure.website.com\nhttps://cool.diccpics.net\netc.\n\nYour zipline base url:"
-    read URL
-    if [ -z "$URL" ]; then
-        echo "Incorrect output, relaunch the script if you wish to try again!"
-        sleep 10
-        exit 1
-    fi
-    URL=$(format_url "$URL")
-else
-    # Read the values from the zipline.sxcu file
-    URL=$(jq -r '.RequestURL' "$zipline_file")
-    authorizationtoken=$(jq -r '.Headers.Authorization' "$zipline_file")
+echo "Please paste your Zipline authorization token now."
+printf '\e]8;;https://share.harryeffingpotter.com/u/QHqMKf.mp4\e\\Follow along with this 7 second video guide\e]8;;\e\\\n'
+echo -e "- then paste in the result:"
+read authorizationtoken
+if [ -z "$authorizationtoken" ]; then
+    echo "Incorrect output, relaunch the script if you wish to try again!"
+    sleep 10
+    exit 1
 fi
-clear
-echo -e "\nHere is what you entered:\n\nAPI url:\n${URL}\n\nAuthorization token:\n${authorizationtoken}\n\nIF THIS IS INCORRECT - PRESS CTRL+C and start over, otherwise PRESS ENTER."
-read NOTHING
-echo "Now editing pastit script with your information!"
-# Replace placeholders in the main script
-sed -i "s|ENTER_YOUR_ZIPLINE_URL_HERE/api/upload|$URL|g" "$mainscript"
-sed -i "s|ENTER_YOUR_ZIPLINE_AUTHORIZATION_TOKEN_HERE|$authorizationtoken|g" "$mainscript"
-
-echo "Main script updated with URL and Authorization token."
-
-echo -e "\n\nFinalizing!\n\nRIP SPRUNGE, YOU WILL BE MISSED\n\nBIG THANKS TO ZIPLINE DEVS FOR THIS INCREDIBLE, FREE, AMAZING, REPOSITORY, SHOW THEM SOME LOVE:\nhttps://github.com/diced/zipline\n\nBUY THOSE BOYS A COFFEE FOR FUCKS SAKE!"
-sleep 3
+echo -e "\nOK Great now post the domain for your zipline server if you have one setup, if not just post the IP of your zipline system and the port number (the default is 3000).\n\nExamples:\n69.4.20.69:3000\nhttps://zipline.mysite.com"
+read URL
+if [ -z "$URL" ]; then
+    echo "Incorrect output, relaunch the script if you wish to try again!"
+    sleep 10
+    exit 1
+fi
+URL=$(format_url "$URL")
+# Update the .env file in the current directory:
+sed -i "s/^authtoken=.*/authtoken=${authorizationtoken}/" .env
+sed -i "s|^url=.*|url=${URL}|" .env
 
 echo "Making script executable..."
-chmod +x ./pastit
+chmod +x "$(pwd)/pastit"
+chmod +x "$(pwd)/pasta"
 
-echo Copying script to  /usr/local/bin so it can be run from anywhere, requesting sudo permissions...
-sudo cp ./pastit /usr/local/bin/pastit
+###################
+# SYMLINK CREATION
+###################
 
-echo Copied!
-echo
-echo Press ENTER to finish installation.
-read NOTHING
-clear
-echo -e "\n\nHOW TO USE PASTIT:\n\nSTDOUT:\necho \"pastitties\" | pastit\n\nPASTE FILE:\npastit ~/.zshrc\n\nFINISHED! COPYING EXECUTABLE..."
+# Using /usr/local/bin is best practice for user-installed executables.
+pastit_path="/usr/local/bin/pastit"
+pasta_path="/usr/local/bin/pasta"
 
-chmod +x ./pastit
-sudo cp ./pastit /usr/local/bin/pastit
+# Remove any existing file or symlink at the target location
+if [ -e "$pastit_path" ] || [ -L "$pastit_path" ]; then
+    echo "Removing existing file or symlink at $link_path"
+    sudo rm -f "$pastit_path"
+fi
+if [ -e "$pasta_path" ] || [ -L "$pasta_path" ]; then
+    echo "Removing existing file or symlink at $pasta_path"
+    sudo rm -f "$pasta_path"
+fi
+
+# Make symlinks
+echo "Creating pastit symlink: $link_path -> $(pwd)/pastit"
+sudo ln -s "$(pwd)/pastit" "$pastit_path"
+echo "Pastit symlink created successfully."
+
+echo "Creating pasta symlink: $pasta_path -> $(pwd)/pasta"
+sudo ln -s "$(pwd)/pasta" "$pasta_path"
+echo "Pasta symlink created successfully!"
 
 check_path() {
-    echo $PATH | grep -q "/usr/local/bin"
+    echo "$PATH" | grep -q "/usr/local/bin"
     return $?
 }
 

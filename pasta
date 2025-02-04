@@ -1,0 +1,38 @@
+#!/bin/bash
+# pasta
+
+# Switch to repo directory so we can use .env
+cd "$(dirname "$(readlink -f "$0")")" || exit 1
+
+# Check .env exists
+filename=".env"
+if [ ! -f "$filename" ]; then
+    echo -e ".env file not found!\nTo configure pasta and run this command:\n\ncp .env.example .env\n\nThen edit .env with a text editor to include your hosting domain and Auth Token from zipline!"
+    exit 1
+fi
+
+# Get and set .env environment variables.
+source .env
+
+# Ensure proper api url formatting
+if [[ "${url}" != */ ]]; then
+  url=${url}/
+fi
+
+# Append api endpoint to url
+url=${url}api/upload
+
+# API endpoint and headers
+authorization_token=${authtoken}
+
+# Sending the request using curl and capturing the response
+response=$(curl -s -X POST -H "Authorization: $authorization_token" \
+                        -H "Format: random" \
+                        -H "Original-Name: true" \
+                        -F "file=@$1" \
+                        $url)
+
+
+# just the URL from the JSON response
+file_url=$(echo "$response" | jq -r '.files[0]')
+echo $file_url
