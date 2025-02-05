@@ -1,52 +1,43 @@
 #!/bin/bash
 # pasta
 
-# Switch to repo directory so we can use .env
-cd "$(dirname "$(readlink -f "$0")")" || exit 1
-
-# Check .env exists
-filename=".env"
-if [ ! -f "$filename" ]; then
+# Get path to the script’s directory (but do NOT cd into it!)
+SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
+source "$SCRIPT_DIR/.env"
+# Check .env exists in the script directory
+ENV_FILE="$SCRIPT_DIR/.env"
+if [ ! -f "$ENV_FILE" ]; then
     echo -e ".env file not found!\nTo configure pasta and run this command:\n\ncp .env.example .env\n\nThen edit .env with a text editor to include your hosting domain and Auth Token from zipline!"
     exit 1
 fi
 
-# Get and set .env environment variables.
-source .env
+# Load the .env file
+source "$ENV_FILE"
 
 # Ensure proper api url formatting
 if [[ "${url}" != */ ]]; then
-  url=${url}/
+  url="${url}/"
 fi
 
 # Append api endpoint to url
-url=${url}api/upload
+url="${url}api/upload"
 
-# API endpoint and headers
-authorization_token=${authtoken}
+authorization_token="${authtoken}"
 
-if [ ! -r "$1" ]; then
+# Get absolute path to the file the user provided
+file_path=$(realpath "$1" 2>/dev/null)
+if [ ! -f "$file_path" ]; then
   echo "Error: File '$1' does not exist or is not readable."
   exit 1
 fi
 
-# Sending the request using curl and capturing the response
-curl_command_line=$(curl -sS --fail -X POST -H "Authorization: $authorization_token" \
-                        -H "Format: random" \
-                        -H "Original-Name: true" \
-                        -F file=@"$1" \
-                        $url)
-response=$curl_command_line
-curl_exit_code=$?
-if [ $curl_exit_code -ne 0 ]; then
-  echo "Error: curl command failed with exit code $curl_exit_code. This may be due to an invalid URL, network issue, or the file being too large."
-  exit 1
-fi
-if [ -z "$response" ]; then
-  echo "Error: Received an empty response from '$url'. The file may be too large to process."
-  exit 1
-fi
-
-# just the URL from the JSON response
+response=$(curl \
+      -X POST \
+      -H "Authorization: $authorization_token" \
+      -H "Format: RANDOM" \
+      -H "Original-Name:true" \
+      -F "file=@${file_path}" \
+      "$url")
+# Extract the uploaded file URL from JSON
 file_url=$(echo "$response" | jq -r '.files[0]')
-echo $file_url
+echo "$file_url"
