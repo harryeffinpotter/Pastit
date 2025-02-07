@@ -1,42 +1,67 @@
-# Pastit! (Paste-it)
+# **Pastit! (Paste-it) & Pasta**
+> _Self-hosted, CLI-based code & file sharing powered by [Zipline](https://github.com/diced/zipline)!_
 
-PRETITIER README COMING SOON - But basically if you know about SPRUNGE.US this is a replacement for that since it has gone MIA, this is the second time its unexplicably gone down in the past ~6 months, and I found myself needing it too often (cant paste into a machine for some reason, weird TTY situiation? EZ win), so I took matters into my own hands.
+## Table of Contents
+- [Overview](#overview)
+- [Features](#features)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Using Pastit (for code/text)](#using-pastit-for-codetext)
+  - [Using Pasta (for large-files)](#using-pasta-for-files)
 
-# REQUIRES ZIPLINE SHAREX BACKEND!
-This repo takes the functionality of the zipline repository and makes it a CLI tool, so with these 2 tools combined, you host your own sprunge, basically. That means you can configure it how you like, make it private, limit it to who you want, or make it public and share with the masses!
+---
 
-## How to install:
+## Overview
+**Pastit** is your self-hosted alternative to Pastebin-like services—quickly share text snippets or code with syntax highlighting.  
+**Pasta** is a companion script for uploading large files (archives, images, etc.) just as easily. 
 
-```git clone https://github.com/harryeffinpotter/pastit```
+Both scripts leverage your **Zipline** server as the backend. If you’re familiar with [sprunge.us](http://sprunge.us) (now often down) or [pastebin.com](https://pastebin.com/), this is a self-hosted replacement so you never rely on third-party services.  
 
-```cd pastit```
+---
 
-```chmod +x setup.sh```
+## Features
+- **Command-line** interface: Send text/files directly from your terminal.
+- **Syntax Highlighting**: Zipline automatically highlights code if it recognizes the file extension.
+- **Large File Uploads**: `pasta` can handle archives, logs, images, etc.
+- **Self-hosted**: Keep total control over your data & domain—no sign-ups required!
+- **Easy Setup**: `setup.sh` installs dependencies (like `jq`, `curl`, `wget`) and configures everything.
 
-```./setup.sh```
+---
 
+## Requirements
+1. **Zipline** – a running, configured instance ([GitHub Repo](https://github.com/diced/zipline)).
+2. A modern Linux environment with:
+   - `bash`
+   - `curl`
+3. (Optional) **sudo** privileges if you want to symlink `pastit` and `pasta` into `/usr/local/bin`.
 
-## Sprunge+ - Like sprunge, but +
-### Use pastit to paste files like so
+---
 
-`pastit .zshrc`
+## Installation
+1. **Clone** this repository and run setup.sh:
+```
+git clone https://github.com/harryeffinpotter/pastit
+cd pastit
+./setup.sh
+```
+2. Follow the on-screen instructions.
 
-`pastit script.py`
+## Usage
+This repository includes 2 main scripts, pasta and pastit. Pastit is basically a pastebin alternative that utilizes your self-hosted zipline backend. It has built-in syntax highlighting making it ideal for sharing scripts and/or code. 
+Pasta also utilizes the Zipline backend but is instead for hosting files.
 
-`pastit /etc/nginx/nginx.conf`
+## Using Pastit (for code/text)
+`pastit <script/code file name>` OR `command | pastit`
 
-### Or just capture STDOUT like this-
-`ls -la | grep "Feet_pics"| pastit`
+**Examples:**  
+echo "Hello world" | **pastit**  
+**pastit** .zshrc  
+**pastit** ~/.ssh/authorized_keys
 
-`ping lemonparty.org | pastit`
+## Using Pasta (for files)  
+`pasta <relative or absolute filepath>`  
 
-`ip a | pastit`
-
-`echo $YOUR_MUMS_FAVORITE_MAN | sed 's/your dad/me/g' | pastit`
-
-
-
-
-
-
-Enjoy! Open to suggestions/ideas! Thanks
+**Examples:**  
+**pasta** myfeetpics.zip  
+**pasta** localjabronis.mp4
