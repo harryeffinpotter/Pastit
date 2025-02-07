@@ -13,10 +13,10 @@ fi
 
 # Load the .env file
 source "$ENV_FILE"
-
+originalurl=$host
 # Ensure proper api url formatting
-if [[ "${url}" != */ ]]; then
-  url="${url}/"
+if [[ "${host}" != */ ]]; then
+  url="${host}/"
 fi
 
 # Append api endpoint to url
@@ -30,8 +30,7 @@ if [ ! -f "$file_path" ]; then
   echo "Error: File '$1' does not exist or is not readable."
   exit 1
 fi
-
-response=$(curl \
+response=$(curl -s \
       -X POST \
       -H "Authorization: $authorization_token" \
       -H "Format: RANDOM" \
@@ -40,4 +39,8 @@ response=$(curl \
       "$url")
 # Extract the uploaded file URL from JSON
 file_url=$(echo "$response" | jq -r '.files[0]')
+if [[ -n "$targetdomain" ]]; then
+echo "$file_url" | sed -e "s!http://$originalurl!$targetdomain!"
+else
 echo "$file_url"
+fi

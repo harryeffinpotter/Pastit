@@ -22,9 +22,9 @@ defaultextension=sh
 # Consider files starting with dot as extensionless (true/false)
 considerFilesStartingWithDotExtensionless=true
 #### END CONFIG ####
-
-if [[ "${url}" != */ ]]; then
-  url="${url}/"
+originalurl=$host
+if [[ "${host}" != */ ]]; then
+  url="${host}/"
 fi
 
 URL="${url}api/upload"
@@ -83,8 +83,11 @@ file_url=$(echo "$response" | jq -r '.files[0]')
 # Replace /u/ with /code/ in the URL
 modified_url=$(echo "$file_url" | sed 's|/u/|/code/|')
 
-# Output the modified URL
-echo "$modified_url"
-
 # Clean up: Remove temporary file
 rm "$output_file"
+
+if [[ -n "$targetdomain" ]]; then
+echo "$modified_url" | sed "s!http://$originalurl!$targetdomain!g"
+else
+echo "$modified_url"
+fi
