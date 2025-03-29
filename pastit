@@ -82,8 +82,8 @@ modified_url=$(echo "$file_url" | sed 's|/u/|/code/|')
 # Clean up: Remove temporary file
 rm "$output_file"
 
-if [[ -n "$targetdomain" ]]; then
-echo "$modified_url" | sed "s!http://$originalurl!$targetdomain!g"
+if [[ -n "$target_domain" ]]; then
+echo "$modified_url" | sed "s!https://$originalurl!$target_domain!g" | sed "s!http://!https://!"
 else
 echo "$modified_url"
 fi

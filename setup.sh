@@ -62,7 +62,6 @@ while true; do
         while true; do
             read -p "Enter Zipline's local port (default 3000): " zipline_port
             zipline_port=${zipline_port:-3000}
-            
             if [[ "$zipline_port" =~ ^[0-9]+$ ]] && [ "$zipline_port" -ge 1 ] && [ "$zipline_port" -le 65535 ]; then
                 host="127.0.0.1:$zipline_port"
                 break
@@ -70,24 +69,6 @@ while true; do
                 echo "Invalid port number. Please enter between 1-65535"
             fi
         done
-
-        # Public URL configuration
-        read -p "Need public URLs for sharing via reverse proxy? (yes/no) " need_public
-        if [ "$need_public" = "yes" ]; then
-            while true; do
-                read -p "Enter public URL (e.g. https://zipline.example.com): " public_url
-                if [[ "$public_url" =~ ^https?:// ]]; then
-                    PUBLIC_URL="$public_url"
-                    break
-                else
-                    echo "Invalid URL. Must start with http:// or https://"
-                fi
-            done
-        fi
-
-        # Update .env
-        sed -i "s|targetdomain=.*|targetdomain=$PUBLIC_URL|" .env
-        break
     elif [ "$zipline_local" = "no" ]; then
         while true; do
             read -p "Enter Zipline instance address (domain/IP:port or URL): " remote_target
@@ -104,7 +85,7 @@ while true; do
     fi
 done
 # Update .env file
-sed -i "s|host=.*|host=$host|" .env
+sed -i "s|^host=.*|host=$host|" .env
 sleep 2
 
 clear
@@ -123,21 +104,22 @@ while true; do
 done
 clear
 top_stamp
-echo -e "Authorization token:\n\n${authorization_token}\n\nwas written to .env file in repo directory."
+echo -e "Authorization token:\n${authorization_token}\n\nwas written to .env file in repo directory."
 sleep 5
 clear
 top_stamp
 echo -e "OK Great."
-echo "Now if this system is the same as  for your zipline server if you have one setup, if not just post the IP of your zipline system and the port number (the default is 3000).\n\nExamples:\n69.4.20.69:3000\nhttps://zipline.mysite.com\n\nEnter your zipline url now:"
-read URL
-if [ -z "$URL" ]; then
+echo -e "Now if this system is the same as  for your zipline server if you have one setup, if not just post the IP of your zipline system and the port number (the default is 3000).\n\nExamples:\n69.4.20.69:3000\nhttps://zipline.mysite.com\n\nEnter your zipline url now:"
+read target_domain
+if [ -z "$target_domain" ]; then
     echo "Incorrect output, relaunch the script if you wish to try again!"
     sleep 10
     exit 1
 fi
 # Update the .env file in the current directory:
-sed -i "s/^authorization_token=.*/authorization_token=${authorizationtoken}/" .env
-sed -i "s|^host=.*|host=${URL}|" .env
+sed -i "s/^authorization_token=.*/authorization_token=${authorization_token}/" .env
+sed -i "s|^host=.*|host=${host}|" .env
+sed -i "s|^target_domain=.*|target_domain=${target_domain}|" .env
 sudo mkdir /etc/pastit
 sudo cp -a .env /etc/pastit/.env
 echo "Making script executable..."
