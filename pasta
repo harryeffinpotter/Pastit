@@ -1,46 +1,44 @@
 #!/bin/bash
-# pasta
 
-# Get path to the script’s directory (but do NOT cd into it!)
-SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
-source "$SCRIPT_DIR/.env"
-# Check .env exists in the script directory
-ENV_FILE="$SCRIPT_DIR/.env"
-if [ ! -f "$ENV_FILE" ]; then
-    echo -e ".env file not found!\nTo configure pasta and run this command:\n\ncp .env.example .env\n\nThen edit .env with a text editor to include your hosting domain and Auth Token from zipline!"
-    exit 1
+#### CONFIG - CHANGE THESE ####
+source /etc/pastit/.env
+# Set this to your zipline url*
+og_url="${host}"
+URL="${host}/api/upload"
+if [ -z "$*" ]; then
+echo "No target file selected"
+exit 0
 fi
+## *If your host machine is the same machine you are running this script on, I suggest using http://localhost:{PORT NUMBER} (obviously replace {PORT NUMBER} with the port number you setup zipline on) instead, since it is easier.
 
-# Load the .env file
-source "$ENV_FILE"
-originalurl=$host
-# Ensure proper api url formatting
-if [[ "${host}" != */ ]]; then
-  url="${host}/"
-fi
+# Set this to your zipline authorization token (I found this in the generated sharex config file)
+#### END CONFIG ####
+#### SCRIPT START ####
+# Check if text is provided vi
+# Write data to the file
 
-# Append api endpoint to url
-url="${url}api/upload"
+# API endpoint and headers
 
-authorization_token="${authtoken}"
-
-# Get absolute path to the file the user provided
-file_path=$(realpath "$1" 2>/dev/null)
-if [ ! -f "$file_path" ]; then
-  echo "Error: File '$1' does not exist or is not readable."
-  exit 1
-fi
-response=$(curl -s \
-      -X POST \
-      -H "Authorization: $authorization_token" \
-      -H "Format: RANDOM" \
-      -H "Original-Name:true" \
-      -F "file=@${file_path}" \
-      "$url")
-# Extract the uploaded file URL from JSON
+# Sending the request using curl and capturing the response
+response=$(curl -s -X POST -H "Authorization: $authorization_token" \
+                        -H "Format: random" \
+                        -H "Original-Name: true" \
+                        -F "file=@$1" \
+                        "$URL")
+                        
+# just the URL from the JSON response
 file_url=$(echo "$response" | jq -r '.files[0]')
-if [[ -n "$targetdomain" ]]; then
-echo "$file_url" | sed -e "s!http://$originalurl!$targetdomain!"
-else
-echo "$file_url"
+
+# Replace /u/ with /code/ in the URL
+
+# Replace localhost:3000 with share.harryeffingpotter.com/api/upload
+modified_url=$(echo "$file_url" | sed "s!http://!!" | sed  "s!${og_url}!${targetdomain}!" | sed "s!/u/!/r/!")
+# Output the modified URL
+
+if [[ ! "$modified_url" =~ ^https:// ]]; then
+    modified_url="https://${modified_url}"
 fi
+echo "$modified_url"
+
+# Clean up: Remove temporary file
+

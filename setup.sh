@@ -112,9 +112,9 @@ top_stamp
 echo -e "Paste your Zipline authorization token.\n\nDon't know where to find it?"
 printf '\e]8;;https://share.harryeffingpotter.com/u/QHqMKf.mp4\e\\Follow along with this 7 second video guide to get your token\e]8;;\e\\\n'
 echo -e "\nThen paste it below:"
-read authorizationtoken
+read authorization_token
 while true; do
-    if [ -z "$authorizationtoken" ]; then
+    if [ -z "$authorization_token" ]; then
         echo "Incorrect output, relaunch the script if you wish to try again!"
         sleep 3
     else
@@ -123,7 +123,7 @@ while true; do
 done
 clear
 top_stamp
-echo -e "Authorization token:\n\n${authorizationtoken}\n\nwas written to .env file in repo directory."
+echo -e "Authorization token:\n\n${authorization_token}\n\nwas written to .env file in repo directory."
 sleep 5
 clear
 top_stamp
@@ -136,9 +136,10 @@ if [ -z "$URL" ]; then
     exit 1
 fi
 # Update the .env file in the current directory:
-sed -i "s/^authtoken=.*/authtoken=${authorizationtoken}/" .env
+sed -i "s/^authorization_token=.*/authorization_token=${authorizationtoken}/" .env
 sed -i "s|^host=.*|host=${URL}|" .env
-
+sudo mkdir /etc/pastit
+sudo cp -a .env /etc/pastit/.env
 echo "Making script executable..."
 chmod +x "$(pwd)/pastit"
 chmod +x "$(pwd)/pasta"

@@ -1,18 +1,15 @@
 #!/bin/bash
 # pastit
 
-# Swap to repo directory.
-cd "$(dirname "$(readlink -f "$0")")" || exit 1
-
 # Check .env exists
-filename=".env"
+filename="/etc/pastit/.env"
 if [ ! -f "$filename" ]; then
-     echo -e ".env file not found!\nTo configure pasta and run this command:\n\ncp .env.example .env\n\nThen edit .env with a text editor to include your hosting domain and Auth Token from zipline!"
+     echo -e ".env file not found! Edit /etc/pastit/.env.example and rename it to /etc/pastit/.env to configure."
      exit 1
 fi
 
 # Load .env
-source .env
+source "$filename"
 
 #### CONFIG OPTIONS ####
 # Default extension (.sh/.py/.zsh)
@@ -28,7 +25,7 @@ if [[ "${host}" != */ ]]; then
 fi
 
 URL="${url}api/upload"
-authorizationtoken="${authtoken}"
+
 
 #### SCRIPT START ####
 # Check if text is provided via stdin
@@ -63,7 +60,6 @@ echo "$data" > "$output_file"
 
 # API endpoint and headers
 url="$URL"
-authorization_token="$authorizationtoken"
 
 # Sending the request using curl and capturing the response
 response=$(curl -s -X POST -H "Authorization: $authorization_token" \
