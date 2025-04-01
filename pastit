@@ -12,13 +12,19 @@ fi
 source "$filename"
 
 #### CONFIG OPTIONS ####
+
 # Default extension (.sh/.py/.zsh)
-# This will be used if the file you provided has no common extension, I.E. stuff like .zshrc, or /etc/hosts. This helps zipline offer a default type of syntax highlighting, usually base this around what OS youre using. So by default I made it 'sh' so that extensionless files get bash script syntax highlighting.
+# This will be used if the file you provided has no common extension, I.E. stuff like .zshrc, or /etc/hosts. 
+# This helps zipline offer a default type of syntax highlighting, usually base this around what OS youre using. 
+# So by default I made it 'sh' so that extensionless files get bash script syntax highlighting.
 defaultextension=sh
 
 # Consider files starting with dot as extensionless (true/false)
 considerFilesStartingWithDotExtensionless=true
+
 #### END CONFIG ####
+
+# Check for errant trailing forward slash in user env file, append api/upload.
 originalurl=$host
 if [[ "${host}" != */ ]]; then
   url="${host}/"
