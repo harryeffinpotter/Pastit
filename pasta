@@ -18,27 +18,17 @@ fi
 # Write data to the file
 
 # API endpoint and headers
-
 # Sending the request using curl and capturing the response
 response=$(curl -s -X POST -H "Authorization: $authorization_token" \
-                        -H "Format: random" \
-                        -H "Original-Name: true" \
+                        -H "x-zipline-format: gfycat" \
+                        -H "x-zipline-original-name: true" \
                         -F "file=@$1" \
                         "$URL")
                         
 # just the URL from the JSON response
-file_url=$(echo "$response" | jq -r '.files[0]')
-
+echo "$response" | jq -r '.files[0].url'
 # Replace /u/ with /code/ in the URL
 
-# Replace localhost:3000 with share.harryeffingpotter.com/api/upload
-modified_url=$(echo "$file_url" | sed "s!http://!!" | sed  "s!${og_url}!${targetdomain}!" | sed "s!/u/!/r/!")
-# Output the modified URL
-
-if [[ ! "$modified_url" =~ ^https:// ]]; then
-    modified_url="https://${modified_url}"
-fi
-echo "$modified_url"
 
 # Clean up: Remove temporary file
 

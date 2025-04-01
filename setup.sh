@@ -55,35 +55,16 @@ fi
 
 # Zipline configuration section
 echo "Zipline Instance Configuration"
-read -p "Is Zipline running on this same system? (yes/no) " zipline_local
 while true; do
-    if [ "$zipline_local" = "yes" ]; then
-        # Internal connection configuration
-        while true; do
-            read -p "Enter Zipline's local port (default 3000): " zipline_port
-            zipline_port=${zipline_port:-3000}
-            if [[ "$zipline_port" =~ ^[0-9]+$ ]] && [ "$zipline_port" -ge 1 ] && [ "$zipline_port" -le 65535 ]; then
-                host="127.0.0.1:$zipline_port"
-                break
-            else
-                echo "Invalid port number. Please enter between 1-65535"
-            fi
-        done
-    elif [ "$zipline_local" = "no" ]; then
-        while true; do
-            read -p "Enter Zipline instance address (domain/IP:port or URL): " remote_target
-            if [[ "$remote_target" =~ ^.+:[0-9]+$ ]] || [[ "$remote_target" =~ ^https?:// ]]; then
-                host="$remote_target"
-                break
-            else
-                echo "Invalid format. Use format: domain.com:port, 192.168.1.1:3000, or https://zipline.example.com"
-            fi
-        done
-        break
-    else
-        echo "Invalid response. Please enter 'yes' or 'no'."
-    fi
+    read -p "Enter Zipline instance address (domain/IP:port or URL): " remote_target
+        if [[ "$remote_target" =~ ^.+:[0-9]+$ ]] || [[ "$remote_target" =~ ^https?:// ]]; then
+            host="$remote_target"
+            break
+        else
+            echo "Invalid format. Use format: domain.com:port, 192.168.1.1:3000, or https://zipline.example.com"
+        fi
 done
+
 # Update .env file
 sed -i "s|^host=.*|host=$host|" .env
 sleep 2
@@ -109,17 +90,9 @@ sleep 5
 clear
 top_stamp
 echo -e "OK Great."
-echo -e "Now if this system is the same as  for your zipline server if you have one setup, if not just post the IP of your zipline system and the port number (the default is 3000).\n\nExamples:\n69.4.20.69:3000\nhttps://zipline.mysite.com\n\nEnter your zipline url now:"
-read target_domain
-if [ -z "$target_domain" ]; then
-    echo "Incorrect output, relaunch the script if you wish to try again!"
-    sleep 10
-    exit 1
-fi
 # Update the .env file in the current directory:
 sed -i "s/^authorization_token=.*/authorization_token=${authorization_token}/" .env
 sed -i "s|^host=.*|host=${host}|" .env
-sed -i "s|^target_domain=.*|target_domain=${target_domain}|" .env
 sudo mkdir /etc/pastit
 sudo cp -a .env /etc/pastit/.env
 echo "Making script executable..."
