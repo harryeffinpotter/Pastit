@@ -1,0 +1,31 @@
+#!/bin/bash
+# pastit
+
+# Check .env exists
+filename="/etc/pastit/.env"
+if [ ! -f "$filename" ]; then
+     echo -e ".env file not found! Edit /etc/pastit/.env.example and rename it to /etc/pastit/.env to configure."
+     exit 1
+fi
+
+# Load .env
+source "$filename"
+
+url="https://share.harryeffingpotter.com/api/user/urls"
+
+URL_TO_SHORTEN="${1}"
+
+# Sending the request using curl and capturing the response
+response=$(curl -s -X POST $url \
+                        -H "Authorization: $authorization_token" \
+                        -H "Content-Type: application/json" \
+                        -d "{\"destination\":\"$URL_TO_SHORTEN\"}")
+
+if [ -z "$response" ]; then
+  echo "Error: Unable to retrieve zipline from '$url'. Please verify that the URL is correct."
+  exit 1
+fi
+
+# Extracting just the URL from the JSON response
+end_url=$(echo "$response" | jq -r '.url')
+echo "$end_url"
