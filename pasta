@@ -5,29 +5,101 @@ source /etc/pastit/.env
 # Set this to your zipline url*
 og_url="${host}"
 URL="${host}/api/upload"
-if [ -z "$*" ]; then
-echo "No target file selected"
-exit 0
+
+# Check if file is provided
+if [ -z "$1" ]; then
+    echo "No target file selected"
+    exit 0
 fi
+
+# Check if maxviews parameter is provided
+if [ -n "$2" ]; then
+    maxviews=${2}
+else
+    maxviews=0
+fi
+
+# Check if we're in an interactive terminal (for visual feedback)
+if [ -t 1 ]; then
+    INTERACTIVE=true
+else
+    INTERACTIVE=false
+fi
+
 ## *If your host machine is the same machine you are running this script on, I suggest using http://localhost:{PORT NUMBER} (obviously replace {PORT NUMBER} with the port number you setup zipline on) instead, since it is easier.
 
 # Set this to your zipline authorization token (I found this in the generated sharex config file)
 #### END CONFIG ####
 #### SCRIPT START ####
-# Check if text is provided vi
-# Write data to the file
+
+# Visual feedback for interactive usage
+if [ "$INTERACTIVE" = true ]; then
+    echo "🍝 Uploading file: $(basename "$1")"
+    if [ "$maxviews" -gt 0 ]; then
+        echo "📊 Max views: $maxviews"
+    fi
+    # Show file size
+    file_size=$(du -h "$1" | cut -f1)
+    echo "📦 File size: $file_size"
+    echo "⬆️  Uploading..."
+    echo # Empty line for spacing
+fi
 
 # API endpoint and headers
 # Sending the request using curl and capturing the response
-response=$(curl -s -X POST -H "Authorization: $authorization_token" \
-                        -H "x-zipline-format: gfycat" \
-                        -H "x-zipline-original-name: true" \
-                        -F "file=@$1" \
-                        "$URL")
-                        
-# just the URL from the JSON response
-echo "$response" | jq -r '.files[0].url'
-# Replace /u/ with /code/ in the URL
+if [ "$INTERACTIVE" = true ]; then
+    # Show solid progress bar using Unicode blocks
+    if [ "$maxviews" -gt 0 ]; then
+        response=$(pv -F '%b %p %t %r %e' -c -N "Progress" -s "$(stat -c%s "$1")" "$1" | \
+                   sed 's/#/█/g' | curl -X POST -H "Authorization: $authorization_token" \
+                                -H "x-zipline-format: gfycat" \
+                                -H "x-zipline-original-name: true" \
+                                -H "x-zipline-max-views: $maxviews" \
+                                -F "file=@-" \
+                                "$URL")
+    else
+        response=$(pv -F '%b %p %t %r %e' -c -N "Progress" -s "$(stat -c%s "$1")" "$1" | \
+                   sed 's/#/█/g' | curl -X POST -H "Authorization: $authorization_token" \
+                                -H "x-zipline-format: gfycat" \
+                                -H "x-zipline-original-name: true" \
+                                -F "file=@-" \
+                                "$URL")
+    fi
+else
+    # Silent mode for automation
+    if [ "$maxviews" -gt 0 ]; then
+        response=$(curl -s -X POST -H "Authorization: $authorization_token" \
+                                -H "x-zipline-format: gfycat" \
+                                -H "x-zipline-original-name: true" \
+                                -H "x-zipline-max-views: $maxviews" \
+                                -F "file=@$1" \
+                                "$URL")
+    else
+        response=$(curl -s -X POST -H "Authorization: $authorization_token" \
+                                -H "x-zipline-format: gfycat" \
+                                -H "x-zipline-original-name: true" \
+                                -F "file=@$1" \
+                                "$URL")
+    fi
+fi
+
+# Check if response is empty (error condition)
+if [ -z "$response" ]; then
+    echo "Error: Unable to upload file to '$URL'. Please verify that the URL is correct."
+    exit 1
+fi
+
+# Extract just the URL from the JSON response
+file_url=$(echo "$response" | jq -r '.files[0].url')
+
+# Visual feedback for interactive usage
+if [ "$INTERACTIVE" = true ]; then
+    echo # Empty line for spacing
+    echo "✅ Upload complete!"
+    echo "🔗 URL: $file_url"
+else
+    echo "$file_url"
+fi
 
 
 # Clean up: Remove temporary file

@@ -1,162 +1,163 @@
 #!/bin/bash
-# setup.sh
-cp .env.example .env
-# Detect the OS
-if [ -f /etc/os-release ]; then
-    . /etc/os-release
-    OS=$ID
-else
-    echo "Cannot determine OS. Exiting."
-    exit 1
-fi
-clear
-top_stamp(){
-    echo "=========================================="
-    echo "= PASTA/PASTIT setup by harryeffinpotter ="
-    echo "=========================================="
-    echo ""
+
+# pastit setup script
+# Detects Linux distribution and installs required packages
+
+set -e
+
+echo "🍝 Setting up pastit dependencies..."
+
+# Function to detect Linux distribution
+detect_distro() {
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        echo $ID
+    elif type lsb_release >/dev/null 2>&1; then
+        lsb_release -si | tr '[:upper:]' '[:lower:]'
+    elif [ -f /etc/redhat-release ]; then
+        echo "rhel"
+    elif [ -f /etc/debian_version ]; then
+        echo "debian"
+    else
+        echo "unknown"
+    fi
 }
-top_stamp
-echo "Starting Pasta/Pastit setup..."
-sleep 2
-echo "Determining OS and checking for required packages..."
-sleep 3
-# Install jq based on detected OS
-case $OS in
-    ubuntu|debian)
-        echo "Detected $OS. Installing jq using apt..."
-        sudo apt update && sudo apt install -y jq curl wget
-        ;;
-    arch)
-        echo "Detected Arch Linux. Installing jq using pacman..."
-        sudo pacman -Sy --noconfirm jq curl wget
-        ;;
-    fedora)
-        echo "Detected Fedora. Installing jq using dnf..."
-        sudo dnf install -y jq curl wget
-        ;;
-    centos|rhel)
-        echo "Detected $OS. Installing jq using yum..."
-        sudo yum install -y jq curl wget
-        ;;
-    *)
-        echo "Unsupported OS: $OS. Exiting."
-        exit 1
-        ;;
-esac
 
-# Verify installation
-if command -v jq &> /dev/null; then
-    echo "jq successfully installed."
-else
-    echo "jq installation failed."
-    exit 1
-fi
+# Function to install packages based on distro
+install_packages() {
+    local distro=$1
+    
+    case $distro in
+        "arch"|"manjaro"|"endeavouros")
+            echo "📦 Detected Arch-based system"
+            echo "Installing packages with pacman..."
+            sudo pacman -S --needed --overwrite='/usr/lib/python*/site-packages/*' \
+                python-rich python-requests python-requests-toolbelt python-dotenv
+            ;;
+        "ubuntu"|"debian"|"pop"|"mint")
+            echo "📦 Detected Debian-based system"
+            echo "Installing packages with apt..."
+            sudo apt update
+            sudo apt install -y python3-pip python3-venv
+            # Install via pip since debian packages might be outdated
+            pip3 install --break-system-packages rich requests requests-toolbelt python-dotenv
+            ;;
+        "fedora"|"centos"|"rhel"|"rocky"|"almalinux")
+            echo "📦 Detected Red Hat-based system"
+            echo "Installing packages with dnf/yum..."
+            if command -v dnf >/dev/null 2>&1; then
+                sudo dnf install -y python3-pip
+            else
+                sudo yum install -y python3-pip
+            fi
+            pip3 install --break-system-packages rich requests requests-toolbelt python-dotenv
+            ;;
+        "opensuse"|"sles")
+            echo "📦 Detected SUSE-based system"
+            echo "Installing packages with zypper..."
+            sudo zypper install -y python3-pip
+            pip3 install --break-system-packages rich requests requests-toolbelt python-dotenv
+            ;;
+        *)
+            echo "⚠️  Unknown distribution: $distro"
+            echo "Attempting to install via pip..."
+            if command -v pip3 >/dev/null 2>&1; then
+                pip3 install --break-system-packages rich requests requests-toolbelt python-dotenv
+            elif command -v pip >/dev/null 2>&1; then
+                pip install --break-system-packages rich requests requests-toolbelt python-dotenv
+            else
+                echo "❌ pip not found. Please install Python packages manually:"
+                echo "   pip install rich requests requests-toolbelt python-dotenv"
+                exit 1
+            fi
+            ;;
+    esac
+}
 
-# Zipline configuration section
-echo "Zipline Instance Configuration"
-while true; do
-    read -p "Enter Zipline instance address (domain/IP:port or URL): " remote_target
-        if [[ "$remote_target" =~ ^.+:[0-9]+$ ]] || [[ "$remote_target" =~ ^https?:// ]]; then
-            host="$remote_target"
-            break
-        else
-            echo "Invalid format. Use format: domain.com:port, 192.168.1.1:3000, or https://zipline.example.com"
+# Function to verify installation
+verify_installation() {
+    echo "🔍 Verifying installation..."
+    
+    if python3 -c "import rich, requests, requests_toolbelt, dotenv" 2>/dev/null; then
+        echo "✅ All dependencies installed successfully!"
+        return 0
+    else
+        echo "❌ Some dependencies are missing. Trying alternative installation..."
+        return 1
+    fi
+}
+
+# Function to fallback installation
+fallback_install() {
+    echo "🔄 Attempting fallback installation..."
+    
+    # Try different pip commands
+    for pip_cmd in "pip3" "pip" "python3 -m pip" "python -m pip"; do
+        if command -v $pip_cmd >/dev/null 2>&1; then
+            echo "Trying $pip_cmd..."
+            $pip_cmd install --break-system-packages rich requests requests-toolbelt python-dotenv
+            if verify_installation; then
+                return 0
+            fi
         fi
-done
-
-# Update .env file
-sed -i "s|^host=.*|host=$host|" .env
-sleep 2
-
-clear
-top_stamp
-echo -e "Paste your Zipline authorization token.\n\nDon't know where to find it?"
-printf '\e]8;;https://share.harryeffingpotter.com/u/QHqMKf.mp4\e\\Follow along with this 7 second video guide to get your token\e]8;;\e\\\n'
-echo -e "\nThen paste it below:"
-read authorization_token
-while true; do
-    if [ -z "$authorization_token" ]; then
-        echo "Incorrect output, relaunch the script if you wish to try again!"
-        sleep 3
-    else
-        break
-    fi
-done
-clear
-top_stamp
-echo -e "Authorization token:\n${authorization_token}\n\nwas written to .env file in repo directory."
-sleep 5
-clear
-top_stamp
-echo -e "OK Great."
-# Update the .env file in the current directory:
-sed -i "s/^authorization_token=.*/authorization_token=${authorization_token}/" .env
-sed -i "s|^host=.*|host=${host}|" .env
-sudo mkdir /etc/pastit
-sudo cp -a .env /etc/pastit/.env
-echo "Making script executable..."
-chmod +x "$(pwd)/pastit"
-chmod +x "$(pwd)/pasta"
-
-###################
-# SYMLINK CREATION
-###################
-
-# Using /usr/local/bin is best practice for user-installed executables.
-pastit_path="/usr/local/bin/pastit"
-pasta_path="/usr/local/bin/pasta"
-
-# Remove any existing file or symlink at the target location
-if [ -e "$pastit_path" ] || [ -L "$pastit_path" ]; then
-    echo "Removing existing file or symlink at $link_path"
-    sudo rm -f "$pastit_path"
-fi
-if [ -e "$pasta_path" ] || [ -L "$pasta_path" ]; then
-    echo "Removing existing file or symlink at $pasta_path"
-    sudo rm -f "$pasta_path"
-fi
-clear 
-top_stamp
-# Make symlinks
-echo "Creating pastit symlink: $link_path -> $(pwd)/pastit"
-sudo ln -s "$(pwd)/pastit" "$pastit_path"
-echo "Pastit symlink created successfully."
-
-echo "Creating pasta symlink: $pasta_path -> $(pwd)/pasta"
-sudo ln -s "$(pwd)/pasta" "$pasta_path"
-echo "Pasta symlink created successfully!"
-
-check_path() {
-    echo "$PATH" | grep -q "/usr/local/bin"
-    return $?
+    done
+    
+    echo "❌ Failed to install dependencies. Please install manually:"
+    echo "   pip install --break-system-packages rich requests requests-toolbelt python-dotenv"
+    exit 1
 }
 
-# Function to append /usr/local/bin to .bashrc and .zshrc
-append_to_files() {
-    echo 'export PATH="/usr/local/bin:$PATH"' >> ~/.bashrc
-    echo 'export PATH="/usr/local/bin:$PATH"' >> ~/.zshrc
-    echo "/usr/local/bin has been added to your PATH in .bashrc and .zshrc"
+# Main installation process
+main() {
+    echo "🔍 Detecting Linux distribution..."
+    
+    DISTRO=$(detect_distro)
+    echo "Detected: $DISTRO"
+    
+    # Install packages
+    install_packages "$DISTRO"
+    
+    # Verify installation
+    if ! verify_installation; then
+        fallback_install
+    fi
+    
+    # Make pasta executable
+    if [ -f "pasta.py" ]; then
+        chmod +x pasta.py
+        echo "✅ Made pasta.py executable"
+    fi
+    
+    # Create symlink to /usr/local/bin/pasta
+    if [ -f "pasta.py" ]; then
+        PASTA_PATH=$(pwd)/pasta.py
+        echo "🔗 Creating symlink to /usr/local/bin/pasta..."
+        if sudo ln -sf "$PASTA_PATH" /usr/local/bin/pasta; then
+            echo "✅ Created symlink: /usr/local/bin/pasta -> $PASTA_PATH"
+            echo "   You can now use 'pasta' from anywhere!"
+        else
+            echo "⚠️  Failed to create symlink. You may need to run with sudo or create manually:"
+            echo "   sudo ln -sf $PASTA_PATH /usr/local/bin/pasta"
+        fi
+    fi
+    
+    # Test the installation
+    echo "🧪 Testing pasta script..."
+    if [ -f "pasta.py" ]; then
+        if python3 pasta.py 2>&1 | grep -q "No target file selected"; then
+            echo "✅ pasta.py is working correctly!"
+            echo ""
+            echo "🎉 Setup complete! You can now:"
+            echo "   1. Test: ./pasta.py some_file.txt"
+            echo "   2. Use globally: pasta some_file.txt"
+            echo "   3. Configure .env file for your Zipline server"
+        else
+            echo "⚠️  pasta.py may have issues. Check your .env configuration."
+        fi
+    else
+        echo "⚠️  pasta.py not found in current directory"
+    fi
 }
 
-check_path
-if [ $? -ne 0 ]; then
-    echo "/usr/local/bin is not in your PATH."
-    read -p "Would you like to add /usr/local/bin to your PATH in .bashrc and .zshrc so that pastit can be usable at launch? (yes/no) " response
-    if [ "$response" == "yes" ]; then
-        append_to_files
-    else
-        echo "No changes made to your PATH."
-    fi
-else
-    echo "Good news! /usr/local/bin is already in your PATH."
-fi
-sleep 5
-clear
-top_stamp
-echo "Pasta/pastit installation complete."
-echo -e "\nUsage:"
-echo "pasta file.zip # To upload files"
-echo -e "pastit script.py\nOR\necho \"Output\" | pastit # To host syntax highlighted code"
-echo -e "\nThanks for installing! Hope you find it as useful as I do!\n"
-sleep 2
+# Run main function
+main "$@"

@@ -1,0 +1,38 @@
+services:
+  postgresql:
+    image: postgres:16
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRESQL_USER:-zipline}
+      POSTGRES_PASSWORD: ${POSTGRESQL_PASSWORD:?POSTGRESSQL_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRESQL_DB:-zipline}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'zipline']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  zipline:
+    image: ghcr.io/diced/zipline
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgres://${POSTGRESQL_USER:-zipline}:${POSTGRESQL_PASSWORD}@postgresql:5432/${POSTGRESQL_DB:-zipline}
+      - TMPDIR=/zipline/temp
+    depends_on:
+      - postgresql
+    volumes:
+      - './uploads:/zipline/uploads'
+      - './public:/zipline/public'
+      - './themes:/zipline/themes'
+      - '/plex/zipline-temp:/zipline/temp'
+
+volumes:
+  pgdata: 

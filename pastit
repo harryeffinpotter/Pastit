@@ -24,6 +24,28 @@ considerFilesStartingWithDotExtensionless=true
 
 #### END CONFIG ####
 
+# Parse command line arguments
+permanent=false
+pretty_view=false
+file_arg=""
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --perm)
+            permanent=true
+            shift
+            ;;
+        -p|--pretty)
+            pretty_view=true
+            shift
+            ;;
+        *)
+            file_arg="$1"
+            shift
+            ;;
+    esac
+done
+
 # Check for errant trailing forward slash in user env file, append api/upload.
 originalurl=$host
 if [[ "${host}" != */ ]]; then
@@ -38,10 +60,10 @@ URL="${url}api/upload"
 if [ -p /dev/stdin ]; then
     # Read piped input into a variable
     data="$(cat)"
-elif [ -n "$1" ]; then
+elif [ -n "$file_arg" ]; then
     # Handle file input
-    if [ -f "$1" ]; then
-        data="$(cat "$1")"
+    if [ -f "$file_arg" ]; then
+        data="$(cat "$file_arg")"
     else
         echo "File not found, try again."
         exit 1
@@ -52,7 +74,7 @@ else
 fi
 
 # Check if the file has an extension, if not add default extension
-filename=$(basename -- "$1")
+filename=$(basename -- "$file_arg")
 extension="${filename##*.}"
 if [ "$extension" == "$filename" ] || ( $considerFilesStartingWithDotExtensionless && [[ "$filename" == .* ]] ); then
     filename="${filename}.$defaultextension"
@@ -68,11 +90,21 @@ echo "$data" > "$output_file"
 url="$URL"
 
 # Sending the request using curl and capturing the response
-response=$(curl -s -X POST -H "Authorization: $authorization_token" \
-                        -H "x-zipline-format: gfycat" \
-                        -H "x-zipline-original-name: true" \
-                        -F "file=@${output_file}" \
-                        $url)
+if [ "$permanent" = true ]; then
+    response=$(curl -s -X POST -H "Authorization: $authorization_token" \
+                            -H "x-zipline-format: gfycat" \
+                            -H "x-zipline-original-name: true" \
+                            -H "x-zipline-deletes-at: 100y" \
+                            -H "x-zipline-max-views: 0" \
+                            -F "file=@${output_file}" \
+                            $url)
+else
+    response=$(curl -s -X POST -H "Authorization: $authorization_token" \
+                            -H "x-zipline-format: gfycat" \
+                            -H "x-zipline-original-name: true" \
+                            -F "file=@${output_file}" \
+                            $url)
+fi
 
 if [ -z "$response" ]; then
   echo "Error: Unable to retrieve zipline from '$url'. Please verify that the URL is correct."
@@ -86,4 +118,9 @@ file_url=$(echo "$response" | jq -r '.files[0].url')
 rm "$output_file"
 
 
-echo "$file_url" | sed "s!/u/!/view/!"
+# Output URL with /raw/ by default, or /view/ if --pretty flag is used
+if [ "$pretty_view" = true ]; then
+    echo "$file_url" | sed "s!/u/!/view/!"
+else
+    echo "$file_url" | sed "s!/u/!/raw/!"
+fi
